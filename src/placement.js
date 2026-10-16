@@ -29,7 +29,50 @@ const culling = (ppos, pangle, fovx, {vseg, angle}) => {
 module.exports = (regl, {placements, getAreaIndex}) => {
     //console.log(areas);
     let batch = [], shownBatch = [];
+    const surveyBatch = [];
+    const surveyTexture = regl.texture();
+    let surveyReady = false;
+    let surveyAspect = 0.62;
     let fetching = true;
+
+    // Load the small voting-survey flyer once; reuse its texture beside every artwork.
+    fetch('images/' + encodeURIComponent('فرم نظر سنجی .png'))
+        .then(response => {
+            if (!response.ok) throw new Error('Could not load survey flyer');
+            return response.blob();
+        })
+        .then(blob => createImageBitmap(blob))
+        .then(bitmap => {
+            surveyAspect = bitmap.width / bitmap.height;
+            surveyTexture({ data: bitmap, flipY: true });
+            surveyReady = true;
+            batch.forEach((painting, i) => { if (painting) addSurveyFlyer(painting, i); });
+        })
+        .catch(error => console.error(error));
+
+    const addSurveyFlyer = (painting, index) => {
+        if (!surveyReady || !painting || painting.file === '1.jpg' || painting.isSurveyFlyer) return;
+        const { pos, dir, segLen, width, globalScale, horiz, vert, angle } = painting;
+        const ux = dir[0] / segLen;
+        const uz = dir[1] / segLen;
+        const flyerHalfWidth = width / 5;
+        const flyerHalfHeight = width / (5 * surveyAspect);
+        const flyerPos = [pos[0] + ux * (2 * width + 0.035), 2.1 - flyerHalfHeight, pos[2] + uz * (2 * width + 0.035)];
+        const flyerScale = [2 * flyerHalfWidth * horiz + 0.1 * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + 0.1 * horiz];
+        const model = [];
+        mat4.fromTranslation(model, flyerPos);
+        mat4.scale(model, model, flyerScale);
+        mat4.rotateY(model, model, -angle);
+        surveyBatch[index] = {
+            ...painting,
+            tex: surveyTexture,
+            text: null,
+            textmodel: null,
+            model,
+            width: flyerHalfWidth,
+            isSurveyFlyer: true
+        };
+    };
     const loadPainting = (p) => {
         // Keep each image attached to its intended wall even when image downloads finish out of order.
         const placementIndex = Number.isInteger(p.image_id) ? p.image_id : batch.length;
@@ -73,10 +116,13 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         mat4.scale(model, model, scale);
         mat4.rotateY(model, model, -angle);
         const textmodel = [];
-        mat4.fromTranslation(textmodel, [pos[0], 1.7 - globalScale, pos[2]]);
+        // Place the larger caption just above the artwork instead of below it.
+        mat4.fromTranslation(textmodel, [pos[0], 2.1 + globalScale, pos[2]]);
         mat4.scale(textmodel, textmodel, [2,2,2]);
         mat4.rotateY(textmodel, textmodel, -angle);
-        batch[placementIndex] = { ...p, vseg, angle, model, textmodel, text, width, textGen:null };
+        batch[placementIndex] = { ...p, vseg, angle, model, textmodel, text, width, textGen:null,
+            pos: [...pos], dir: [...dir], segLen, globalScale, horiz, vert };
+        addSurveyFlyer(batch[placementIndex], placementIndex);
     };
     // Fetch the first textures
     texture.fetch(regl, 40, dynamicRes, loadPainting, () => fetching = false);
@@ -90,6 +136,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
             batch.slice(index + unloadDist).map(t => texture.unload(t));
             // Load close textures
             shownBatch = batch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean);
+            shownBatch = shownBatch.concat(surveyBatch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean));
             shownBatch.map(t => texture.load(regl, t, dynamicRes));
             // Frustum / Orientation culling
             shownBatch = shownBatch.filter(t => t.tex && culling(pos, angle, fovX, t));
