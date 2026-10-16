@@ -35,7 +35,8 @@ module.exports = (regl, data, useReflexion) => {
                     * step(panelMargin, ceilingCell.y)
                     * (1.0 - step(panelEnd, ceilingCell.x))
                     * (1.0 - step(panelEnd, ceilingCell.y));
-                vec3 ceilingBase = vec3(0.25, 0.26, 0.27);
+                // Warm light cream ceiling to harmonize with the golden brick wall.
+                vec3 ceilingBase = vec3(0.72, 0.68, 0.59);
                 vec3 panelWhite = vec3(0.98, 0.98, 0.96);
                 totalLight = mix(ceilingBase, panelWhite, lightPanel);
             } else if (v_normal.y > 0.5) {
@@ -51,10 +52,10 @@ module.exports = (regl, data, useReflexion) => {
                 // Yellow small-format brick wall with horizontal mortar joints only.
                 // No vertical joints: each course reads as a continuous narrow band.
                 vec2 wallUV = vec2(v_pos.x + v_pos.z, v_pos.y);
-                float brickHeight = 0.24;
+                float brickHeight = 0.20;
                 float row = floor(wallUV.y / brickHeight);
                 float rowPos = fract(wallUV.y / brickHeight);
-                float horizontalJoint = 1.0 - step(0.045, min(rowPos, 1.0 - rowPos));
+                float horizontalJoint = 1.0 - step(0.025, min(rowPos, 1.0 - rowPos));
 
                 // Very subtle tonal changes from course to course, in warm golden yellow.
                 float variation = fract(sin(row * 17.17) * 43758.5453);
