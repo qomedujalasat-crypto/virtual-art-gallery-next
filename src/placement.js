@@ -2,9 +2,9 @@
 const texture = require('./image');
 const mat4 = require('gl-mat4');
 
-const renderDist = 20;
+const renderDist = 40;
 const loadDist = 20;
-const unloadDist = 40;
+const unloadDist = 80;
 const fovxMargin = Math.PI/32;
 
 const dynamicResPeriod = 3000;
@@ -79,7 +79,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         batch[placementIndex] = { ...p, vseg, angle, model, textmodel, text, width, textGen:null };
     };
     // Fetch the first textures
-    texture.fetch(regl, 20, dynamicRes, loadPainting, () => fetching = false);
+    texture.fetch(regl, 40, dynamicRes, loadPainting, () => fetching = false);
     return {
         update: (pos, angle, fovX) => {
             // Estimate player position index
