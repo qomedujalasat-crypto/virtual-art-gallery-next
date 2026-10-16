@@ -239,7 +239,12 @@ module.exports = function (n = mapSize, r = cellSize, w = wallThickness, m = wal
 	let s = r * Math.pow(2, n);
 	let border = genBorder(n + 1, w, m).map((v) => [v[0] * s, v[1] * s]);
 	console.time('gen mesh');
-	let segments = border.slice(0, -1).map((p, i) => [p, border[i + 1]]);
+	// Remove wall fragments shorter than the space needed for two paintings.
+	// splitSegments targets about 8 world units per painting, so require at least 16.
+	const minimumWallLength = 16;
+	let segments = border.slice(0, -1)
+		.map((p, i) => [p, border[i + 1]])
+		.filter(([[x1, y1], [x2, y2]]) => Math.hypot(x2 - x1, y2 - y1) >= minimumWallLength);
 	let normal = segments
 		.map(([[x1, y1], [x2, y2]]) => [Math.sign(y1 - y2), 0, Math.sign(x2 - x1)])
 		.flatMap((v) => Array(4).fill(v));
