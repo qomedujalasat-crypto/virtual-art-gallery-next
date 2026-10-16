@@ -1,4 +1,4 @@
-const textHeight = 26;
+const textHeight = 38;
 const textCanvas = document.createElement('canvas');
 const maxWidth = textCanvas.width = textCanvas.height = 1024;
 const ctx = textCanvas.getContext('2d');
