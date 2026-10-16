@@ -1,6 +1,6 @@
 'use strict';
 
-const mapSize = 2; // Compact gallery so the visitor sees less unused wall space.
+const mapSize = 3; // 48 x 48 grid, allowing a U-shaped layout with long, orthogonal walls.
 const cellSize = 6; // 24 x 24 footprint at this map size.
 const mapHeight = 7;
 const wallThickness = 0.25;
@@ -237,26 +237,14 @@ function genGrid(segments, n, r) {
 
 module.exports = function (n = mapSize, r = cellSize, w = wallThickness, m = wallRemoval, h = mapHeight) {
 	let s = r * Math.pow(2, n);
-	let border = genBorder(n + 1, w, m).map((v) => [v[0] * s, v[1] * s]);
+	// Use a deliberate U-shaped orthogonal outline. Every corner is 90 degrees,
+	// and each wall run is at least 16 world units (about two painting spaces).
+	// Coordinates are normalized to the square footprint and scaled below.
+	let border = [
+		[0, 0], [1, 0], [1, 1], [2 / 3, 1],
+		[2 / 3, 1 / 3], [1 / 3, 1 / 3], [1 / 3, 1], [0, 1], [0, 0]
+	].map(([x, y]) => [x * s, y * s]);
 	console.time('gen mesh');
-	// Collapse short wall edges by removing their corner point, keeping the wall outline
-	// continuous instead of leaving black/open gaps where a segment was simply deleted.
-	const minimumWallLength = 16; // Approximately two painting spaces.
-	let changed = true;
-	while (changed && border.length > 4) {
-		changed = false;
-		for (let i = 0; i < border.length - 1; i++) {
-			const a = border[i];
-			const b = border[i + 1];
-			if (Math.hypot(b[0] - a[0], b[1] - a[1]) < minimumWallLength) {
-				// Keep the closing point aligned with the first point.
-				if (i + 1 === border.length - 1) border.splice(i, 1);
-				else border.splice(i + 1, 1);
-				changed = true;
-				break;
-			}
-		}
-	}
 	let segments = border.slice(0, -1).map((p, i) => [p, border[i + 1]]);
 	let normal = segments
 		.map(([[x1, y1], [x2, y2]]) => [Math.sign(y1 - y2), 0, Math.sign(x2 - x1)])
