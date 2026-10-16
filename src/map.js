@@ -1,10 +1,11 @@
 'use strict';
 
-const mapSize = 3; // Compact maze-like gallery with multiple rooms
-const cellSize = 8; // Room spacing; total gallery footprint is 64 x 64
-const mapHeight = 7; // Height of the walls
-const wallThickness = 0.25; // Wall thickness
-const wallRemoval = 0.5; // Random wall removal proportion
+const mapSize = 2; // Compact gallery so the visitor sees less unused wall space.
+const cellSize = 6; // 24 x 24 footprint at this map size.
+const mapHeight = 7;
+const wallThickness = 0.25;
+const wallRemoval = 0.5;
+
 
 const transform = (a, r, tx, ty, o = 1) => a.map((v) => [(o * v[r] + tx) / 2, (o * v[1 - r] + ty) / 2]);
 
