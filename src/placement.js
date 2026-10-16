@@ -44,16 +44,8 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         .then(blob => createImageBitmap(blob))
         .then(bitmap => {
             surveyAspect = bitmap.width / bitmap.height;
-            // Correct the flyer orientation: rotate 180 degrees, then mirror horizontally.
-            const correctedCanvas = document.createElement('canvas');
-            correctedCanvas.width = bitmap.width;
-            correctedCanvas.height = bitmap.height;
-            const correctedContext = correctedCanvas.getContext('2d');
-            correctedContext.translate(correctedCanvas.width / 2, correctedCanvas.height / 2);
-            correctedContext.rotate(Math.PI);
-            correctedContext.scale(-1, 1);
-            correctedContext.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
-            surveyTexture({ data: correctedCanvas, flipY: true });
+            // Preserve the source flyer exactly; do not rotate or mirror it.
+            surveyTexture({ data: bitmap, flipY: true });
             surveyReady = true;
             batch.forEach((painting, i) => { if (painting) addSurveyFlyer(painting, i); });
         })
@@ -67,7 +59,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         const flyerHalfWidth = width / 5;
         const flyerHalfHeight = width / (5 * surveyAspect);
         const flyerPos = [pos[0] + ux * (2 * width + 0.035), 2.1 - flyerHalfHeight, pos[2] + uz * (2 * width + 0.035)];
-        const flyerScale = [2 * flyerHalfWidth * horiz + 0.1 * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + 0.1 * horiz];
+        // A nearly zero depth makes the flyer read as a flat sheet of paper on the wall.\n        const paperThickness = 0.002;\n        const flyerScale = [2 * flyerHalfWidth * horiz + paperThickness * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + paperThickness * horiz];
         const model = [];
         mat4.fromTranslation(model, flyerPos);
         mat4.scale(model, model, flyerScale);
