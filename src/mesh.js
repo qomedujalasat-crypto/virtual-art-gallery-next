@@ -26,9 +26,17 @@ module.exports = (regl, data, useReflexion) => {
             float dist = length(v_relativepos);
             vec3 totalLight;
 
-            // Keep the ceiling plain white.
+            // Slightly dark ceiling with large white square light panels.
             if (v_normal.y < -0.5) {
-                totalLight = vec3(0.97, 0.97, 0.96);
+                vec2 ceilingCell = mod(v_pos.xz, 6.0);
+                float edgeX = smoothstep(0.75, 1.0, ceilingCell.x)
+                    * (1.0 - smoothstep(5.0, 5.25, ceilingCell.x));
+                float edgeZ = smoothstep(0.75, 1.0, ceilingCell.y)
+                    * (1.0 - smoothstep(5.0, 5.25, ceilingCell.y));
+                float lightPanel = edgeX * edgeZ;
+                vec3 ceilingBase = vec3(0.25, 0.26, 0.27);
+                vec3 panelWhite = vec3(0.96, 0.96, 0.93);
+                totalLight = mix(ceilingBase, panelWhite, lightPanel);
             } else if (v_normal.y > 0.5) {
                 // Keep the marble floor muted so the artwork, not the room, draws attention.
                 vec3 stone = vec3(0.76, 0.73, 0.68);
