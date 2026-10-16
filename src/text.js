@@ -24,7 +24,8 @@ module.exports = {
         const paddingX = 14;
         const paddingY = 8;
         const labelHeight = fontSize + paddingY * 2;
-        const centerX = textCanvas.width / 2;
+        // Shift the caption slightly left so it sits more naturally beneath the artwork.
+        const centerX = textCanvas.width / 2 - 38;
         const centerY = textCanvas.height - 62;
 
         // Opaque white label behind dark text; the rest of the canvas stays transparent.
