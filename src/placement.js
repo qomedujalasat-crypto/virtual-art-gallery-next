@@ -44,7 +44,16 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         .then(blob => createImageBitmap(blob))
         .then(bitmap => {
             surveyAspect = bitmap.width / bitmap.height;
-            surveyTexture({ data: bitmap, flipY: true });
+            // Correct the flyer orientation: rotate 180 degrees, then mirror horizontally.
+            const correctedCanvas = document.createElement('canvas');
+            correctedCanvas.width = bitmap.width;
+            correctedCanvas.height = bitmap.height;
+            const correctedContext = correctedCanvas.getContext('2d');
+            correctedContext.translate(correctedCanvas.width / 2, correctedCanvas.height / 2);
+            correctedContext.rotate(Math.PI);
+            correctedContext.scale(-1, 1);
+            correctedContext.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+            surveyTexture({ data: correctedCanvas, flipY: true });
             surveyReady = true;
             batch.forEach((painting, i) => { if (painting) addSurveyFlyer(painting, i); });
         })
@@ -117,7 +126,8 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         mat4.rotateY(model, model, -angle);
         const textmodel = [];
         // Place the larger caption just above the artwork instead of below it.
-        mat4.fromTranslation(textmodel, [pos[0], 2.1 + globalScale, pos[2]]);
+        // Shift the caption left by about half the artwork width to align it with the artwork.
+        mat4.fromTranslation(textmodel, [pos[0] - (dir[0] / segLen) * width * 0.5, 2.1 + globalScale, pos[2] - (dir[1] / segLen) * width * 0.5]);
         mat4.scale(textmodel, textmodel, [2,2,2]);
         mat4.rotateY(textmodel, textmodel, -angle);
         batch[placementIndex] = { ...p, vseg, angle, model, textmodel, text, width, textGen:null,
