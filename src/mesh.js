@@ -26,16 +26,17 @@ module.exports = (regl, data, useReflexion) => {
             float dist = length(v_relativepos);
             vec3 totalLight;
 
-            // Slightly dark ceiling with large white square light panels.
+            // Dark ceiling with slightly smaller, crisp-edged LED-style square panels.
             if (v_normal.y < -0.5) {
                 vec2 ceilingCell = mod(v_pos.xz, 6.0);
-                float edgeX = smoothstep(0.75, 1.0, ceilingCell.x)
-                    * (1.0 - smoothstep(5.0, 5.25, ceilingCell.x));
-                float edgeZ = smoothstep(0.75, 1.0, ceilingCell.y)
-                    * (1.0 - smoothstep(5.0, 5.25, ceilingCell.y));
-                float lightPanel = edgeX * edgeZ;
+                float panelMargin = 1.15;
+                float panelEnd = 6.0 - panelMargin;
+                float lightPanel = step(panelMargin, ceilingCell.x)
+                    * step(panelMargin, ceilingCell.y)
+                    * (1.0 - step(panelEnd, ceilingCell.x))
+                    * (1.0 - step(panelEnd, ceilingCell.y));
                 vec3 ceilingBase = vec3(0.25, 0.26, 0.27);
-                vec3 panelWhite = vec3(0.96, 0.96, 0.93);
+                vec3 panelWhite = vec3(0.98, 0.98, 0.96);
                 totalLight = mix(ceilingBase, panelWhite, lightPanel);
             } else if (v_normal.y > 0.5) {
                 // Keep the marble floor muted so the artwork, not the room, draws attention.
