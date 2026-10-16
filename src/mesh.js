@@ -52,10 +52,10 @@ module.exports = (regl, data, useReflexion) => {
                 // Yellow small-format brick wall with horizontal mortar joints only.
                 // No vertical joints: each course reads as a continuous narrow band.
                 vec2 wallUV = vec2(v_pos.x + v_pos.z, v_pos.y);
-                float brickHeight = 0.20;
+                float brickHeight = 0.10;
                 float row = floor(wallUV.y / brickHeight);
                 float rowPos = fract(wallUV.y / brickHeight);
-                float horizontalJoint = 1.0 - step(0.025, min(rowPos, 1.0 - rowPos));
+                float horizontalJoint = 1.0 - step(0.05, min(rowPos, 1.0 - rowPos));
 
                 // Very subtle tonal changes from course to course, in warm golden yellow.
                 float variation = fract(sin(row * 17.17) * 43758.5453);
