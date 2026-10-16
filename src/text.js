@@ -1,68 +1,38 @@
-'strict mode';
-
-const textHeight = 32;
+const textHeight = 26;
 const textCanvas = document.createElement('canvas');
-//document.body.appendChild(textCanvas);
-//textCanvas.style.position = "fixed";
 const maxWidth = textCanvas.width = textCanvas.height = 1024;
 const ctx = textCanvas.getContext('2d');
 ctx.mozImageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
-ctx.font = textHeight + 'px "Noto Nastaliq Urdu", Tahoma, sans-serif';
 ctx.textAlign = "center";
-ctx.textBaseline = "bottom";
-ctx.fillStyle = "#aaa";
-
-// from https://delphic.me.uk/tutorials/webgl-text
-function createMultilineText(ctx, textToWrite, maxWidth, text) {
-    var currentText = textToWrite;
-    var futureText;
-    var subWidth = 0;
-    var maxLineWidth = 0;
-
-    var wordArray = textToWrite.split(" ");
-    var wordsInCurrent, wordArrayLength;
-    wordsInCurrent = wordArrayLength = wordArray.length;
-
-    // Reduce currentText until it is less than maxWidth or is a single word
-    // futureText var keeps track of text not yet written to a text line
-    while (ctx.measureText(currentText).width > maxWidth && wordsInCurrent > 1) {
-        wordsInCurrent--;
-        currentText = futureText = "";
-        for (var i = 0; i < wordArrayLength; i++) {
-            if (i < wordsInCurrent) {
-                currentText += wordArray[i];
-                if (i + 1 < wordsInCurrent) currentText += " ";
-            } else {
-                futureText += wordArray[i];
-                if (i + 1 < wordArrayLength) futureText += " ";
-            }
-        }
-    }
-    text.push(currentText); // Write this line of text to the array
-    maxLineWidth = ctx.measureText(currentText).width;
-
-    // If there is any text left to be written call the function again
-    if (futureText) {
-        subWidth = createMultilineText(ctx, futureText, maxWidth, text);
-        if (subWidth > maxLineWidth) {
-            maxLineWidth = subWidth;
-        }
-    }
-
-    // Return the maximum line width
-    return maxLineWidth;
-}
+ctx.textBaseline = "middle";
 
 module.exports = {
-    init(texture, textToWrite, paintingWidth=maxWidth) {
-        var text = [];
-        createMultilineText(ctx, textToWrite, Math.min(paintingWidth*maxWidth, maxWidth), text);
-
+    init(texture, textToWrite, paintingWidth = maxWidth) {
         ctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
-        for (var i = 0; i < text.length; i++) {
-            ctx.fillText(text[i], textCanvas.width / 2, textCanvas.height - (Math.max(text.length, 3) - i) * textHeight);
+
+        // Fit the complete caption on one centered line.
+        const availableWidth = Math.max(180, Math.min(paintingWidth * maxWidth, maxWidth) - 36);
+        let fontSize = textHeight;
+        ctx.font = fontSize + 'px Tahoma, Arial, sans-serif';
+        while (ctx.measureText(textToWrite).width > availableWidth && fontSize > 14) {
+            fontSize -= 1;
+            ctx.font = fontSize + 'px Tahoma, Arial, sans-serif';
         }
+
+        const measuredWidth = Math.min(ctx.measureText(textToWrite).width, availableWidth);
+        const paddingX = 14;
+        const paddingY = 8;
+        const labelHeight = fontSize + paddingY * 2;
+        const centerX = textCanvas.width / 2;
+        const centerY = textCanvas.height - 62;
+
+        // Opaque white label behind dark text; the rest of the canvas stays transparent.
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(centerX - measuredWidth / 2 - paddingX, centerY - labelHeight / 2,
+            measuredWidth + paddingX * 2, labelHeight);
+        ctx.fillStyle = "#242424";
+        ctx.fillText(textToWrite, centerX, centerY, availableWidth);
 
         return texture({
             data: textCanvas,
@@ -79,8 +49,7 @@ module.exports = {
             varying vec2 uv;
         
             void main () {
-                float c = texture2D(tex, uv).r;
-                gl_FragColor = vec4(0,0,0, c);
+                gl_FragColor = texture2D(tex, uv);
             }`,
             vert: `
             precision highp float;
