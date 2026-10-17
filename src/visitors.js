@@ -2,7 +2,7 @@
 
 // Lightweight, static 3D gallery visitors built from triangle meshes.
 // No external models or textures are required.
-module.exports = (regl) => {
+module.exports = (regl, fps) => {
     const positions = [];
     const colors = [];
 
@@ -123,8 +123,8 @@ module.exports = (regl) => {
             color: colors
         },
         uniforms: {
-            view: regl.context('view'),
-            proj: regl.context('proj')
+            view: fps.view,
+            proj: fps.proj
         },
         count: positions.length / 3,
         primitive: 'triangles',
