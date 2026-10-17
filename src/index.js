@@ -43,8 +43,6 @@ drawMap = mesh(regl, map, useReflexion);
 placement = require('./placement')(regl, map);
 drawPainting = require('./painting')(regl);
 fps = require('./fps')(map, fovY);
-// Static visitors are initialized only after the camera uniforms exist.
-const drawVisitors = require('./visitors')(regl, fps);
 
 const context = regl({
 	cull: {
@@ -90,7 +88,6 @@ regl.frame(({
 		}
 		drawMap();
 		drawPainting(placement.batch());
-		drawVisitors();
 	});
 	stats.end();
 });
