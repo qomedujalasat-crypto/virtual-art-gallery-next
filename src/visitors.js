@@ -119,8 +119,8 @@ module.exports = (regl, fps) => {
                 gl_FragColor = vec4(vColor, 1.0);
             }`,
         attributes: {
-            position: positions,
-            color: colors
+            position: { data: positions, dimension: 3 },
+            color: { data: colors, dimension: 3 }
         },
         uniforms: {
             view: fps.view,
