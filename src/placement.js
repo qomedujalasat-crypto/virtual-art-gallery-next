@@ -45,7 +45,11 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         .then(bitmap => {
             surveyAspect = bitmap.width / bitmap.height;
             // Preserve the source flyer exactly; do not rotate or mirror it.
-            surveyTexture({ data: bitmap, flipY: true });
+            const flyerCanvas = document.createElement('canvas');
+            flyerCanvas.width = bitmap.width;
+            flyerCanvas.height = bitmap.height;
+            flyerCanvas.getContext('2d').drawImage(bitmap, 0, 0);
+            surveyTexture({ data: flyerCanvas, flipY: true });
             surveyReady = true;
             batch.forEach((painting, i) => { if (painting) addSurveyFlyer(painting, i); });
         })
@@ -56,10 +60,10 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         const { pos, dir, segLen, width, globalScale, horiz, vert, angle } = painting;
         const ux = dir[0] / segLen;
         const uz = dir[1] / segLen;
-        const flyerHalfWidth = width / 5;
-        const flyerHalfHeight = width / (5 * surveyAspect);
+        const flyerHalfWidth = width / 2.5;
+        const flyerHalfHeight = width / (2.5 * surveyAspect);
         const flyerPos = [pos[0] + ux * (2 * width + 0.035), 2.1 - flyerHalfHeight, pos[2] + uz * (2 * width + 0.035)];
-        // A nearly zero depth makes the flyer read as a flat sheet of paper on the wall.\n        const paperThickness = 0.002;\n        const flyerScale = [2 * flyerHalfWidth * horiz + paperThickness * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + paperThickness * horiz];
+        // Keep enough depth for visibility while making the flyer look like a flat sheet.\n        const paperThickness = 0.1;\n        const flyerScale = [2 * flyerHalfWidth * horiz + paperThickness * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + paperThickness * horiz];
         const model = [];
         mat4.fromTranslation(model, flyerPos);
         mat4.scale(model, model, flyerScale);
