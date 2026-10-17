@@ -63,7 +63,9 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         const flyerHalfWidth = width / 2.5;
         const flyerHalfHeight = width / (2.5 * surveyAspect);
         const flyerPos = [pos[0] + ux * (2 * width + 0.035), 2.1 - flyerHalfHeight, pos[2] + uz * (2 * width + 0.035)];
-        // Keep enough depth for visibility while making the flyer look like a flat sheet.\n        const paperThickness = 0.1;\n        const flyerScale = [2 * flyerHalfWidth * horiz + paperThickness * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + paperThickness * horiz];
+        // Keep enough depth for visibility while making the flyer look like a flat sheet.
+        const paperThickness = 0.1;
+        const flyerScale = [2 * flyerHalfWidth * horiz + paperThickness * vert, 2 * flyerHalfHeight, 2 * flyerHalfWidth * vert + paperThickness * horiz];
         const model = [];
         mat4.fromTranslation(model, flyerPos);
         mat4.scale(model, model, flyerScale);
