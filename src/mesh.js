@@ -49,24 +49,27 @@ module.exports = (regl, data, useReflexion) => {
                 float vein = pow(1.0 - abs(pattern), 18.0);
                 totalLight = mix(totalLight, vec3(0.55, 0.52, 0.47), vein * 0.12);
             } else {
-                // Yellow small-format brick wall with horizontal mortar joints only.
-                // No vertical joints: each course reads as a continuous narrow band.
-                vec2 wallUV = vec2(v_pos.x + v_pos.z, v_pos.y);
-                float brickHeight = 0.10;
-                float row = floor(wallUV.y / brickHeight);
-                float rowPos = fract(wallUV.y / brickHeight);
-                float horizontalJoint = 1.0 - step(0.05, min(rowPos, 1.0 - rowPos));
+                // Warm medium-tone wood wall with horizontal boards and natural grain.
+                vec2 woodUV = vec2(v_pos.x + v_pos.z, v_pos.y);
+                float boardHeight = 0.62;
+                float boardPosition = fract(woodUV.y / boardHeight);
+                float boardSeam = 1.0 - step(0.012, min(boardPosition, 1.0 - boardPosition));
 
-                // Very subtle tonal changes from course to course, in warm golden yellow.
-                float variation = fract(sin(row * 17.17) * 43758.5453);
-                vec3 yellowA = vec3(0.72, 0.57, 0.29);
-                vec3 yellowB = vec3(0.82, 0.68, 0.39);
-                vec3 brickColor = mix(yellowA, yellowB, 0.25 + variation * 0.25);
-                vec3 mortarColor = vec3(0.42, 0.34, 0.23);
-                totalLight = mix(brickColor, mortarColor, horizontalJoint);
+                // Layered, gently irregular grain; keep the finish between light oak and walnut.
+                float warpedX = woodUV.x
+                    + 0.035 * sin(woodUV.y * 7.0)
+                    + 0.018 * sin(woodUV.y * 19.0 + woodUV.x * 0.35);
+                float grainA = sin(warpedX * 18.0 + sin(warpedX * 2.2) * 1.7);
+                float grainB = sin(warpedX * 43.0 + sin(woodUV.y * 3.0) * 0.8);
+                float grain = grainA * 0.035 + grainB * 0.012;
+                float boardVariation = fract(sin(floor(woodUV.y / boardHeight) * 19.19) * 43758.5453);
+                vec3 woodBase = mix(vec3(0.43, 0.27, 0.15), vec3(0.56, 0.38, 0.23), boardVariation * 0.65 + 0.15);
+                vec3 woodColor = woodBase + vec3(grain * 1.0, grain * 0.72, grain * 0.45);
+                vec3 seamColor = vec3(0.25, 0.16, 0.095);
+                totalLight = mix(woodColor, seamColor, boardSeam);
 
-                // Keep the brick finish softly lit to preserve the gallery atmosphere.
-                totalLight *= mix(0.96, 1.0, smoothstep(0.1, 0.12, v_pos.y));
+                // Gentle light keeps the wood grain visible without making the wall too bright.
+                totalLight *= 0.98 + 0.02 * smoothstep(0.1, 0.12, v_pos.y);
             }
 
             float alpha = .98 + smoothstep(150., 0., dist) - v_normal.y;
