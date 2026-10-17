@@ -1,7 +1,7 @@
 'use strict';
 
-const mapSize = 3; // 48 x 48 grid, allowing a U-shaped layout with long, orthogonal walls.
-const cellSize = 6; // 24 x 24 footprint at this map size.
+const mapSize = 3; // Restore the previously published gallery layout.
+const cellSize = 6; // Restore the previous gallery footprint.
 const mapHeight = 7;
 const wallThickness = 0.25;
 const wallRemoval = 0.5;
