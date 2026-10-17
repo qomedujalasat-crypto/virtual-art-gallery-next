@@ -217,7 +217,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         createMannequin(batch[placementIndex], placementIndex);
     };
     // Fetch the first textures
-    texture.fetch(regl, 40, dynamicRes, loadPainting, () => fetching = false);
+    texture.fetch(regl, 20, dynamicRes, loadPainting, () => fetching = false);
     return {
         update: (pos, angle, fovX) => {
             // Estimate player position index
