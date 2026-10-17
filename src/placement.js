@@ -142,10 +142,13 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         const mannequinWidth = Math.min(0.72, width * 0.7);
         const mannequinHeight = 1.75;
         // Place it beside (not in front of) the artwork, slightly off the wall.
+        // Place the prototype just in front of the same wall as the first artwork.
+        // Start near the artwork center so it is guaranteed to be in the gallery view;
+        // later we can fine-tune the side-by-side spacing after confirming visibility.
         const mannequinPos = [
-            pos[0] + ux * (2 * width + mannequinWidth + 0.12) + (dir[1] / segLen) * 0.12,
+            pos[0] + (dir[1] / segLen) * 0.22,
             0.02,
-            pos[2] + uz * (2 * width + mannequinWidth + 0.12) - (dir[0] / segLen) * 0.12
+            pos[2] - (dir[0] / segLen) * 0.22
         ];
         const model = [];
         mat4.fromTranslation(model, mannequinPos);
