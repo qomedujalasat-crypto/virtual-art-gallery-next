@@ -1,7 +1,7 @@
 'use strict';
 
-const mapSize = 4; // Expanded U-shaped gallery; 144 x 144 footprint with about 96 artwork wall placements.
-const cellSize = 9; // Larger gallery grid while preserving artwork spacing and wall layout.
+const mapSize = 3; // Restore the previously published gallery layout.
+const cellSize = 6; // Restore the previous gallery footprint.
 const mapHeight = 7;
 const wallThickness = 0.25;
 const wallRemoval = 0.5;
