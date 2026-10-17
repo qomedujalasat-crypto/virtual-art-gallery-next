@@ -80,6 +80,88 @@ module.exports = (regl, {placements, getAreaIndex}) => {
             isSurveyFlyer: true
         };
     };
+    // One experimental, mannequin-like display beside the first artwork.
+    // Drawn procedurally on a canvas so this prototype needs no external asset.
+    const mannequinTexture = regl.texture();
+    let mannequinReady = false;
+    let mannequinBatch = null;
+    const createMannequin = (painting, index) => {
+        if (mannequinReady || !painting || painting.file === '1.jpg') return;
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Soft floor shadow and a simple matte-white, faceless mannequin.
+        ctx.fillStyle = 'rgba(0,0,0,0.14)';
+        ctx.beginPath(); ctx.ellipse(128, 492, 63, 10, 0, 0, Math.PI * 2); ctx.fill();
+        const white = '#f4f3ef';
+        ctx.fillStyle = white;
+        ctx.beginPath(); ctx.ellipse(128, 48, 31, 40, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(117, 80, 22, 25);
+        ctx.beginPath();
+        ctx.moveTo(95, 101); ctx.lineTo(161, 101);
+        ctx.lineTo(178, 178); ctx.lineTo(151, 208);
+        ctx.lineTo(105, 208); ctx.lineTo(78, 178); ctx.closePath(); ctx.fill();
+        // Arms, slightly angled away from the torso.
+        ctx.lineCap = 'round'; ctx.strokeStyle = white; ctx.lineWidth = 19;
+        ctx.beginPath(); ctx.moveTo(91, 112); ctx.lineTo(69, 190); ctx.lineTo(61, 251); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(165, 112); ctx.lineTo(187, 190); ctx.lineTo(195, 251); ctx.stroke();
+        ctx.fillStyle = white;
+        ctx.beginPath(); ctx.ellipse(60, 263, 10, 20, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(196, 263, 10, 20, 0.1, 0, Math.PI*2); ctx.fill();
+
+        // Emerald evening dress, matching the gallery's fashion-display concept.
+        const dress = ctx.createLinearGradient(80, 130, 180, 470);
+        dress.addColorStop(0, '#07564b'); dress.addColorStop(0.5, '#063f37'); dress.addColorStop(1, '#022c27');
+        ctx.fillStyle = dress;
+        ctx.beginPath();
+        ctx.moveTo(99, 119); ctx.lineTo(157, 119);
+        ctx.lineTo(169, 205); ctx.lineTo(204, 470);
+        ctx.quadraticCurveTo(128, 491, 52, 470);
+        ctx.lineTo(87, 205); ctx.closePath(); ctx.fill();
+        // Restrained gold embroidery at the waist.
+        ctx.strokeStyle = '#c5a76a'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(94, 220); ctx.quadraticCurveTo(128, 202, 162, 220); ctx.stroke();
+        for (let i = 0; i < 7; i++) {
+            const x = 101 + i * 9;
+            ctx.beginPath(); ctx.moveTo(128, 240); ctx.lineTo(x, 215 + (i % 2) * 8); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(x, 214 + (i % 2) * 8, 3, 7, -0.4, 0, Math.PI * 2); ctx.stroke();
+        }
+        // Repaint the exposed neck and hands so the mannequin reads as white.
+        ctx.fillStyle = white;
+        ctx.fillRect(117, 91, 22, 18);
+        ctx.beginPath(); ctx.ellipse(60, 263, 8, 16, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(196, 263, 8, 16, 0.1, 0, Math.PI*2); ctx.fill();
+
+        mannequinTexture({ data: canvas, flipY: true, min: 'linear', mag: 'linear' });
+        mannequinReady = true;
+        const { pos, dir, segLen, width, angle, horiz, vert } = painting;
+        const ux = dir[0] / segLen, uz = dir[1] / segLen;
+        const mannequinWidth = Math.min(0.72, width * 0.7);
+        const mannequinHeight = 1.75;
+        // Place it beside (not in front of) the artwork, slightly off the wall.
+        const mannequinPos = [
+            pos[0] + ux * (2 * width + mannequinWidth + 0.12) + (dir[1] / segLen) * 0.035,
+            0.02,
+            pos[2] + uz * (2 * width + mannequinWidth + 0.12) - (dir[0] / segLen) * 0.035
+        ];
+        const model = [];
+        mat4.fromTranslation(model, mannequinPos);
+        mat4.scale(model, model, [2 * mannequinWidth * horiz + 0.025 * vert, mannequinHeight, 2 * mannequinWidth * vert + 0.025 * horiz]);
+        mat4.rotateY(model, model, -angle);
+        mannequinBatch = {
+            ...painting, tex: mannequinTexture, text: null, textmodel: null,
+            model, width: mannequinWidth, isMannequinPrototype: true,
+            vseg: [
+                [mannequinPos[0] - ux * mannequinWidth * 2, mannequinPos[2] - uz * mannequinWidth * 2],
+                [mannequinPos[0] + ux * mannequinWidth * 2, mannequinPos[2] + uz * mannequinWidth * 2]
+            ],
+            pos: mannequinPos, angle
+        };
+    };
+
     const loadPainting = (p) => {
         // Keep each image attached to its intended wall even when image downloads finish out of order.
         const placementIndex = Number.isInteger(p.image_id) ? p.image_id : batch.length;
@@ -131,6 +213,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         batch[placementIndex] = { ...p, vseg, angle, model, textmodel, text, width, textGen:null,
             pos: [...pos], dir: [...dir], segLen, globalScale, horiz, vert };
         addSurveyFlyer(batch[placementIndex], placementIndex);
+        createMannequin(batch[placementIndex], placementIndex);
     };
     // Fetch the first textures
     texture.fetch(regl, 40, dynamicRes, loadPainting, () => fetching = false);
@@ -145,6 +228,7 @@ module.exports = (regl, {placements, getAreaIndex}) => {
             // Load close textures
             shownBatch = batch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean);
             shownBatch = shownBatch.concat(surveyBatch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean));
+            if (mannequinBatch && index < renderDist) shownBatch = shownBatch.concat([mannequinBatch]);
             shownBatch.map(t => texture.load(regl, t, dynamicRes));
             // Frustum / Orientation culling
             shownBatch = shownBatch.filter(t => t.tex && culling(pos, angle, fovX, t));
