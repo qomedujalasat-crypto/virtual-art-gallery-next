@@ -143,9 +143,9 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         const mannequinHeight = 1.75;
         // Place it beside (not in front of) the artwork, slightly off the wall.
         const mannequinPos = [
-            pos[0] + ux * (2 * width + mannequinWidth + 0.12) + (dir[1] / segLen) * 0.035,
+            pos[0] + ux * (2 * width + mannequinWidth + 0.12) + (dir[1] / segLen) * 0.12,
             0.02,
-            pos[2] + uz * (2 * width + mannequinWidth + 0.12) - (dir[0] / segLen) * 0.035
+            pos[2] + uz * (2 * width + mannequinWidth + 0.12) - (dir[0] / segLen) * 0.12
         ];
         const model = [];
         mat4.fromTranslation(model, mannequinPos);
@@ -154,10 +154,8 @@ module.exports = (regl, {placements, getAreaIndex}) => {
         mannequinBatch = {
             ...painting, tex: mannequinTexture, text: null, textmodel: null,
             model, width: mannequinWidth, isMannequinPrototype: true,
-            vseg: [
-                [mannequinPos[0] - ux * mannequinWidth * 2, mannequinPos[2] - uz * mannequinWidth * 2],
-                [mannequinPos[0] + ux * mannequinWidth * 2, mannequinPos[2] + uz * mannequinWidth * 2]
-            ],
+            // Reuse the artwork's visible segment so view culling cannot hide this first prototype.
+            vseg: painting.vseg,
             pos: mannequinPos, angle
         };
     };
@@ -228,10 +226,10 @@ module.exports = (regl, {placements, getAreaIndex}) => {
             // Load close textures
             shownBatch = batch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean);
             shownBatch = shownBatch.concat(surveyBatch.slice(Math.max(0, index - renderDist), index + renderDist).filter(Boolean));
-            if (mannequinBatch && index < renderDist) shownBatch = shownBatch.concat([mannequinBatch]);
+            if (mannequinBatch) shownBatch = shownBatch.concat([mannequinBatch]);
             shownBatch.map(t => texture.load(regl, t, dynamicRes));
             // Frustum / Orientation culling
-            shownBatch = shownBatch.filter(t => t.tex && culling(pos, angle, fovX, t));
+            shownBatch = shownBatch.filter(t => t.tex && (t.isMannequinPrototype || culling(pos, angle, fovX, t)));
             // Fetch new textures
             if (index <= batch.length - loadDist) return;
             if (!fetching) {
