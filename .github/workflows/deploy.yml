@@ -1,17 +1,16 @@
-
-name: Build and publish gallery
+name: Build gallery test preview
 
 on:
   push:
+    branches:
+      - gallery-expansion-test
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: gallery-test-build
   cancel-in-progress: true
 
 jobs:
@@ -38,18 +37,9 @@ jobs:
           cp build.html public/index.html
           cp -R images public/images
 
-      - name: Upload website
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload preview files
+        uses: actions/upload-artifact@v4
         with:
+          name: gallery-test-preview
           path: public
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          retention-days: 7
