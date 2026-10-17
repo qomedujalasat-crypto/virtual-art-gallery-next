@@ -42,8 +42,8 @@ const mesh = require('./mesh');
 drawMap = mesh(regl, map, useReflexion);
 placement = require('./placement')(regl, map);
 drawPainting = require('./painting')(regl);
-const drawVisitors = require('./visitors')(regl);
 fps = require('./fps')(map, fovY);
+const drawVisitors = require('./visitors')(regl, fps);
 
 const context = regl({
 	cull: {
