@@ -17,7 +17,7 @@ function dynamicQual(quality) {
 }
 
 const resizeCanvas = document.createElement('canvas');
-resizeCanvas.width = resizeCanvas.height = 2048;
+resizeCanvas.width = resizeCanvas.height = 1024;
 const ctx = resizeCanvas.getContext('2d');
 ctx.mozImageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
