@@ -1,7 +1,7 @@
 'use strict';
 
-const mapSize = 3; // 48 x 48 grid, allowing a U-shaped layout with long, orthogonal walls.
-const cellSize = 6; // 24 x 24 footprint at this map size.
+const mapSize = 4; // Expanded U-shaped gallery; 144 x 144 footprint with about 96 artwork wall placements.
+const cellSize = 9; // Larger gallery grid while preserving artwork spacing and wall layout.
 const mapHeight = 7;
 const wallThickness = 0.25;
 const wallRemoval = 0.5;
