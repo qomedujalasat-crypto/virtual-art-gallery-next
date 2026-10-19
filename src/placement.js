@@ -188,8 +188,8 @@ module.exports = (regl, {placements, getAreaIndex}) => {
             2 * width * horiz + 0.1 * vert,
             2 * globalScale,
             2 * width * vert + 0.1 * horiz];
-        // The exhibition banner (1.jpg) stands on its own; do not render a caption beneath it.
-        const text = p.file === '1.jpg' ? null : p.textGen(width);
+        // Hide the festival heading/caption above all artworks.
+        const text = null;
         const d1 = width / segLen;
         const d2 = 0.005 / Math.hypot(norm[0], norm[1]);
         // Visible painting segment for culling
